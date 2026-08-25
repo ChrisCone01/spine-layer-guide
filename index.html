@@ -44,6 +44,14 @@ ul.check li:before{content:"\2610";position:absolute;left:0;color:#4f46e5;font-s
 .dl a{flex:0 0 auto;background:#16a34a;color:#fff;text-decoration:none;padding:10px 20px;border-radius:6px;font-weight:600;font-size:14px}
 .dl a:hover{background:#15803d}
 @media print{.dl a{display:none}}
+figure{margin:16px 0 24px}
+figure img{max-width:100%;border:1px solid #d1d5db;border-radius:6px;background:#fff;display:block}
+figcaption{margin-top:8px;font-size:13px;color:#6b7280}
+figcaption b{color:#4f46e5}
+.shots{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin:16px 0 8px}
+.shots figure{margin:0}
+.shots img{max-height:520px;object-fit:contain;object-position:top}
+@media(max-width:760px){.shots{grid-template-columns:1fr}}
 footer{margin:64px -24px -80px;padding:24px 40px;background:#f3f4f6;color:#6b7280;font-size:13px}
 @media print{body{background:#fff}.wrap{box-shadow:none}header{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
 </style>
@@ -387,10 +395,43 @@ var HANDHELD_ITEMS = {
 <h2 id="faq">九、常见问题</h2>
 
 <h4>Q1：脚本提示「未识别图层」怎么办？</h4>
-<p>说明图层命名不符合规范。对照本文的命名表检查，或者先点「预览」，对话框会列出所有识别不了的图层名。</p>
+<p>说明这些图层的命名不在词典里，脚本不知道该放进哪个插槽，会<strong>直接跳过、保持原样</strong>，其余图层照常整理。</p>
+
+<p><strong>第一步：运行脚本后先点「预览」</strong>，不要直接点「开始整理」。预览只显示结果不改动文件，可以先确认所有图层都能被识别。</p>
+<figure>
+  <img src="img/step-preview.png" alt="脚本对话框，先点预览按钮">
+  <figcaption>风格名会从文件名自动填入（这里是 <b>demo</b>），先点<b>「预览」</b>确认，再点「开始整理」</figcaption>
+</figure>
+
+<p><strong>第二步：看预览结果里有没有「未识别」那一段。</strong></p>
+<div class="shots">
+  <figure>
+    <img src="img/result-ok.png" alt="预览结果：32 个图层全部识别">
+    <figcaption>✅ <b>全部识别</b> — 32 个图层都列出了对应的 slot / skin / 附件名，末尾<b>没有</b>「未识别」段落，可以放心点「开始整理」</figcaption>
+  </figure>
+  <figure>
+    <img src="img/result-fail.png" alt="预览结果：31 个图层识别，牙齿未识别">
+    <figcaption>⚠️ <b>有未识别</b> — 只整理 31 个，底部红框列出 <code>配饰-身体前牙齿</code>。因为「牙齿」不在词典里</figcaption>
+  </figure>
+</div>
+
+<p><strong>第三步：按情况处理。</strong></p>
+<table>
+<tr><th style="width:30%">原因</th><th>��么解决</th></tr>
+<tr><td>写法不在规范表里</td><td>对照<a href="#base">基础部位</a>、<a href="#acc">配饰部位</a>改成表里的写法</td></tr>
+<tr><td>配饰没写具体物品</td><td>补上物品名，例如 <code>配饰-头部</code> → <code>配饰-头部皇冠</code></td></tr>
+<tr><td>物品词典里没有<br>（上图的牙齿就是这种）</td><td>要么换成词典里的近义词，要么<a href="#extend">加进词典</a></td></tr>
+<tr><td>本来就不需要整理<br>（参考图、草稿、背景）</td><td>不用管，或者把图层隐藏起来，预览里就不会再出现</td></tr>
+</table>
+<div class="note">预览列表里的<strong>数量</strong>也值得对一眼。上面两张图分别是 32 和 31 —— 如果数字比你实际的图层数少，说明有图层没被算进去，往下翻看「未识别」段落。</div>
 
 <h4>Q2：自动填的风格名不对怎么办？</h4>
-<p>在弹出的对话框里手动改风格名输入框，再点「开始整理」。</p>
+<p>风格名是从 PSD 文件名自动提取的，如果不对，直接在对话框的输入框里改掉再点「开始整理」——不用去改文件名重开。</p>
+<figure>
+  <img src="img/style-name.png" alt="对话框中的风格名输入框可直接编辑">
+  <figcaption>「风格名」输入框可以直接编辑，改完的名字会用作所有图层的后缀</figcaption>
+</figure>
+<div class="note">改风格名只影响这一次整理的结果。下次重新运行脚本，还是会从文件名重新提取，所以长期用的话建议直接把 PSD 文件名改对。</div>
 
 <h4>Q3：整理完能再改吗？</h4>
 <p>能，但不建议手动动生成的结构。要调整就先 <code>Ctrl+Z</code> 撤销，改好原始图层名再重跑脚本。</p>
