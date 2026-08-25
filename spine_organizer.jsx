@@ -227,6 +227,38 @@ function trim(s) { return s.replace(/^\s+|\s+$/g, ""); }
 // 全部转小写并去空格
 function norm(s) { return trim(String(s)).toLowerCase(); }
 
+// ============ 镜像处理 ============
+// 图层名里带"镜像"两个字，表示这是镜像件（常见于只含身体部位的上衣、裤子）
+// 规则：slot 名完全不变，skin 名和图层名在风格名后加 -mirror
+var MIRROR_TAG = "mirror";
+var MIRROR_WORDS = ["镜像", "mirror"];
+
+// 判断图层名是否带镜像标记
+function hasMirrorTag(layerName) {
+  var n = norm(layerName);
+  for (var i = 0; i < MIRROR_WORDS.length; i++) {
+    if (n.indexOf(MIRROR_WORDS[i]) !== -1) return true;
+  }
+  return false;
+}
+
+// 去掉图层名里的镜像标记，好让后续走原有的识别逻辑
+// 同时清掉标记两侧可能残留的连字符和空格，例如 "上装-身体-镜像" → "上装-身体"
+function stripMirror(layerName) {
+  var s = String(layerName);
+  for (var i = 0; i < MIRROR_WORDS.length; i++) {
+    var w = MIRROR_WORDS[i];
+    var at = s.toLowerCase().indexOf(w);
+    while (at !== -1) {
+      s = s.substring(0, at) + s.substring(at + w.length);
+      at = s.toLowerCase().indexOf(w);
+    }
+  }
+  // 清理残留的分隔符：结尾的 -/_/空格，以及连续的 --
+  s = s.replace(/[-_\s]+$/g, "").replace(/[-_]{2,}/g, "-");
+  return trim(s);
+}
+
 // 从文件名提取风格名（去扩展名）
 function getStyleName() {
   var n = app.activeDocument.name;
@@ -436,25 +468,51 @@ function validateResult(doc, style) {
     "facial": ["[slot]slot-eyebrow-l", "[slot]slot-eyebrow-r", "[slot]slot-mouth"]
   };
 
+  // 镜像件的 skin 带 -mirror 后缀，属于独立皮肤，不参与"同类共享"比较
+  var mirrorSuffix = "-" + MIRROR_TAG;
+  function isMirrorSkin(name) {
+    return name.length >= mirrorSuffix.length &&
+           name.substring(name.length - mirrorSuffix.length) === mirrorSuffix;
+  }
+
   for (var category in expectedSharing) {
     var slots = expectedSharing[category];
-    var skins = [];
+    var skins = [];        // 普通 skin
+    var mirrorSkins = [];  // 镜像 skin
 
     for (var s = 0; s < slots.length; s++) {
       var slotName = slots[s];
-      if (slotSkinMap[slotName] && slotSkinMap[slotName].length > 0) {
-        skins.push(slotSkinMap[slotName][0]);
+      var list = slotSkinMap[slotName];
+      if (!list || list.length === 0) continue;
+
+      // 同一个 slot 下可能同时有普通 skin 和镜像 skin，分开收集
+      for (var li = 0; li < list.length; li++) {
+        if (isMirrorSkin(list[li])) {
+          mirrorSkins.push(list[li]);
+        } else {
+          skins.push(list[li]);
+          break; // 普通 skin 每个 slot 只取第一个
+        }
       }
     }
 
-    // 检查这些 slot 的 skin 名是否一致
+    // 检查普通 skin 是否一致
     if (skins.length > 1) {
       var firstSkin = skins[0];
-      var allSame = true;
       for (var n = 1; n < skins.length; n++) {
         if (skins[n] !== firstSkin) {
-          allSame = false;
           errors.push(category + " 类部位的 skin 名称不一致:\n    " + skins.join("\n    "));
+          break;
+        }
+      }
+    }
+
+    // 镜像 skin 之间也应该一致
+    if (mirrorSkins.length > 1) {
+      var firstMirror = mirrorSkins[0];
+      for (var m = 1; m < mirrorSkins.length; m++) {
+        if (mirrorSkins[m] !== firstMirror) {
+          errors.push(category + " 类部位的镜像 skin 名称不一致:\n    " + mirrorSkins.join("\n    "));
           break;
         }
       }
@@ -620,7 +678,7 @@ function buildPlan(style) {
 
   for (var i = 0; i < all.length; i++) {
     var layer = all[i];
-    var key = resolveKey(layer.name, style);
+    var key = resolveKey(stripMirror(layer.name), style);
     if (key) {
       allKeys.push(key);
       // 检测是否有下袖子
@@ -642,7 +700,8 @@ function buildPlan(style) {
   // 第二遍：根据是否有下袖子，调整上袖子的命名
   for (var i = 0; i < all.length; i++) {
     var layer = all[i];
-    var key = resolveKey(layer.name, style);
+    var isMirror = hasMirrorTag(layer.name);
+    var key = resolveKey(stripMirror(layer.name), style);
 
     if (key) {
       var finalKey = key;
@@ -714,12 +773,16 @@ function buildPlan(style) {
           }
         }
 
+        // 镜像件：slot 名不变，skin 名和图层名在风格名后加 -mirror
+        var styleSuffix = isMirror ? style + "-" + MIRROR_TAG : style;
+
         plan.push({
           layer: layer,
           original: layer.name,
+          isMirror: isMirror,
           slotGroup: "[slot]" + mapping.slot,
-          skinGroup: "[skin]" + skinName + "-" + style,
-          attachment: finalKey + "-" + style
+          skinGroup: "[skin]" + skinName + "-" + styleSuffix,
+          attachment: finalKey + "-" + styleSuffix
         });
       } else {
         unknown.push(layer.name);
@@ -735,10 +798,15 @@ function previewPlan(style) {
   var r = buildPlan(style);
   var msg = "风格名：" + style + "\n\n";
   msg += "将整理 " + r.plan.length + " 个图层：\n\n";
+  var mirrorCount = 0;
   for (var i = 0; i < r.plan.length; i++) {
     var p = r.plan[i];
-    msg += p.original + "\n";
+    if (p.isMirror) mirrorCount++;
+    msg += p.original + (p.isMirror ? "   [镜像]" : "") + "\n";
     msg += "  " + p.slotGroup + " / " + p.skinGroup + " / " + p.attachment + "\n";
+  }
+  if (mirrorCount > 0) {
+    msg += "\n其中镜像件 " + mirrorCount + " 个（skin 和图层名带 -" + MIRROR_TAG + "，slot 名不变）\n";
   }
   if (r.unknown.length > 0) {
     msg += "\n未识别（不会处理）：\n";
@@ -768,10 +836,11 @@ function organize(style) {
       p.layer.name = p.attachment;
 
       // 2) 找或创建 slot 组（文档根部）
-      // 对于配饰类的 slot（可能有多个同名），直接创建新组
+      // 配饰 slot 和镜像件：每次都创建新组（允许同名 slot 并存）
+      // 基础部位：查找或创建（避免重复）
       var slotG;
-      if (p.slotGroup.indexOf("slot-acc-") !== -1) {
-        // 配饰：直接创建新组，不查找已存在的
+      if (p.slotGroup.indexOf("slot-acc-") !== -1 || p.isMirror) {
+        // 配饰或镜像：直接创建新组，不查找已存在的
         slotG = doc.layerSets.add();
         slotG.name = p.slotGroup;
       } else {
@@ -792,6 +861,15 @@ function organize(style) {
   }
 
   var msg = "整理完成！成功 " + done + " / " + r.plan.length + "\n";
+
+  var mirrorDone = 0;
+  for (var mi = 0; mi < r.plan.length; mi++) {
+    if (r.plan[mi].isMirror) mirrorDone++;
+  }
+  if (mirrorDone > 0) {
+    msg += "其中镜像件 " + mirrorDone + " 个\n";
+  }
+
   if (r.unknown.length > 0) {
     msg += "\n未识别（已跳过）：\n";
     for (var k = 0; k < r.unknown.length; k++) msg += "  " + r.unknown[k] + "\n";

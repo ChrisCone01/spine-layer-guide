@@ -353,14 +353,16 @@ footer{margin:64px -24px -80px;padding:24px 40px;background:#f3f4f6;color:#6b728
     eyelash-r-deer</code></pre>
 <div class="note">眼睛的 6 个部件都共享 <code>eye/eye-deer</code> 这一个 skin，这样在 Spine 里换肤时���整套一起切换。</div>
 
-<h3>示例 5：镜像件（同 slot 不同 skin）</h3>
+<h3>示例 5：镜像件（同 slot 名，独立分组）</h3>
 <p>文件 <code>demo.psd</code>，图层命名 <code>上装-身体</code> / <code>上装-身体镜像</code>：</p>
 <pre><code>[slot]slot-top-body
   [skin]tops/top-sleeve-demo
     sleeve-body-demo
+
+[slot]slot-top-body
   [skin]tops/top-sleeve-demo-mirror
     sleeve-body-demo-mirror</code></pre>
-<div class="note">镜像件进入<strong>同一个 slot</strong>，但挂在独立的 skin 下（风格名后加 <code>-mirror</code>）。在 Spine 里切换 skin 就能换花色，slot 的绑定和动画不需要重做。</div>
+<div class="note">镜像件生成<strong>两个独立的同名 slot 组</strong>（风格名后加 <code>-mirror</code>）。在 PSD 里是分开的文件夹，导出到 Spine 后会合并成一个 slot，切换 skin 就能换花色，绑定和动画不需要重做。</div>
 
 <h3>完整工作流演示</h3>
 <p>整理 <code>deer.psd</code>，图层面板命名如下：</p>
