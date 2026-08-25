@@ -440,11 +440,12 @@ var HANDHELD_ITEMS = {
 
 <h4>Q4：只想整理一部分图层怎么办？</h4>
 <p>把不需要整理的图层隐藏起来，脚本只处理可见图层。</p>
+<figure>
+  <a href="#zoom-hide"><img src="img/hide-layer.png" alt="图层面板中隐藏不需要整理的图层"></a>
+  <figcaption>点掉图层前面的<b>眼睛图标</b>，这个图层就不会被整理（点图片可放大查看）</figcaption>
+</figure>
 
-<h4>Q5：脚本会改坏原始 PSD 吗？</h4>
-<p>会直接修改当前打开的文档。运行前先另存一份备份，或者做好用 <code>Ctrl+Z</code> 撤销的准备。</p>
-
-<h4>Q6：验证报告里的「错误」和「警告」有什么区别？</h4>
+<h4>Q5：验证报告里的「错误」和「警告」有什么区别？</h4>
 <p><strong>错误</strong>（❌）必须修，比如同类部位 skin 名不一致、缺风格后缀——这些会导致 Spine 换肤出问题。<strong>警告</strong>（⚠️）可以忽略，比如只有左边没右边，不对称设计是正常的。</p>
 
 <h2 id="checklist">十、命名检查清单</h2>
@@ -498,6 +499,11 @@ Spine 图层整理工具 · 使用指南　|　配套脚本：<code>spine_organi
 </a>
 <a href="#_" id="zoom-style" class="lb">
   <img src="img/style-name.png" alt="放大：风格名输入框">
+  <span class="lb-close">&times;</span>
+  <span class="lb-tip">点击任意处关闭</span>
+</a>
+<a href="#_" id="zoom-hide" class="lb">
+  <img src="img/hide-layer.png" alt="放大：隐藏图层">
   <span class="lb-close">&times;</span>
   <span class="lb-tip">点击任意处关闭</span>
 </a>
