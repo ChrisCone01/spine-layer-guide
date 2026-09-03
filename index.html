@@ -157,7 +157,10 @@ footer{margin:64px -24px -80px;padding:24px 40px;background:#f3f4f6;color:#6b728
 <tr><td><code>鞋袜-右</code> / <code>右鞋</code></td><td><code>shoes-r-{风格}</code></td><td>右脚鞋</td></tr>
 <tr><td><code>左袜</code></td><td><code>socks-l-mini-{风格}</code></td><td>左脚短袜</td></tr>
 <tr><td><code>右袜</code></td><td><code>socks-r-mini-{风格}</code></td><td>右脚短袜</td></tr>
+<tr><td><code>鞋袜-左鞋角度1</code> / <code>左鞋角度2</code></td><td><code>shoes-l-new-angle-{风格}</code></td><td>左鞋角度变体（多角度版本）</td></tr>
+<tr><td><code>鞋袜-右鞋角度1</code> / <code>右鞋角度2</code></td><td><code>shoes-r-new-angle-{风格}</code></td><td>右鞋角度变体（多角度版本）</td></tr>
 </table>
+<div class="note"><strong>角度变体：</strong>当图层名包含「角度」关键字时，自动识别为多角度版本。左鞋角度使用 <code>slot-shoes-l</code> 结构，右鞋角度使用 <code>slot-shoes-r</code> 结构。每个角度图层创建独立的同名 slot 组，方便管理同一鞋子的不同角度。</div>
 
 <h3>3. 上装（袖子 + 身体）</h3>
 <h4>情况 A：袖子分上下臂</h4>
@@ -292,6 +295,7 @@ footer{margin:64px -24px -80px;padding:24px 40px;background:#f3f4f6;color:#6b728
 <tr><td>智能袖子检测</td><td>有上下袖 → 保留 <code>-upper</code>/<code>-lower</code>；只有上袖 → 自动简化为 <code>sleeve-l</code>。</td></tr>
 <tr><td>连体衣检测</td><td>文件名含 <code>onesie</code> 时，上装和下装自动合并为同一个 skin：<code>onesie/onesie-{类型}</code>。有裙子则类型为 <code>skirt</code>，否则为 <code>sleeve</code>。</td></tr>
 <tr><td>镜像件处理</td><td>图层名带 <code>镜像</code> 或 <code>mirror</code> → skin 名和图层名在风格名后加 <code>-mirror</code>，slot 名不变。用于同一部位的换肤变体（常见于上装、裤子的不同花色）。</td></tr>
+<tr><td>角度变体处理</td><td>图层名带 <code>角度</code> 关键字（如 <code>鞋袜-左鞋角度1</code>）→ 自动识别为鞋子的多角度版本。左鞋角度使用 <code>slot-shoes-l</code> 结构，右鞋角度使用 <code>slot-shoes-r</code> 结构，图层名为 <code>shoes-{l/r}-new-angle-{风格}</code>。每个角度图层创建独立的 slot 组（同名但独立），方便在 Spine 中管理多个角度版本。</td></tr>
 <tr><td>自动栅格化</td><td>智能对象、文字图层自动转为普通图层，视觉效果不变。</td></tr>
 <tr><td>保持位置</td><td>不改画布尺寸，不改图层位置，只重组分组结构和命名。</td></tr>
 <tr><td>命名验证</td><td>整理后自动检查同类部位是否共享 skin、风格后缀是否完整、命名格式是否正确、是否有空组。</td></tr>
@@ -362,6 +366,21 @@ footer{margin:64px -24px -80px;padding:24px 40px;background:#f3f4f6;color:#6b728
   [skin]tops/top-sleeve-demo-mirror
     sleeve-body-demo-mirror</code></pre>
 <div class="note">镜像件生成<strong>两个独立的同名 slot 组</strong>（风格名后加 <code>-mirror</code>）。在 PSD 里是分开的文件夹，导出到 Spine 后会合并成一个 slot，切换 skin 就能换花色，绑定和动画不需要重做。</div>
+
+<h3>示例 6：角度变体（同 slot 名，独立分组）</h3>
+<p>文件 <code>demo.psd</code>，图层命名 <code>鞋袜-左鞋角度1</code> / <code>鞋袜-左鞋角度2</code> / <code>鞋袜-右鞋角度1</code>：</p>
+<pre><code>[slot]slot-shoes-l
+  [skin]foot/foot-demo
+    shoes-l-new-angle-demo
+
+[slot]slot-shoes-l
+  [skin]foot/foot-demo
+    shoes-l-new-angle-demo
+
+[slot]slot-shoes-r
+  [skin]foot/foot-demo
+    shoes-r-new-angle-demo</code></pre>
+<div class="note">角度变体自动识别左右，生成<strong>独立的同名 slot 组</strong>。左鞋角度使用 <code>slot-shoes-l</code> 结构，右鞋角度使用 <code>slot-shoes-r</code> 结构。每个角度图层都是独立的组，图层名带 <code>-new-angle</code> 标识。导出到 Spine 后，同名 slot 会自动合并，方便管理同一个鞋子的多个角度版本。</div>
 
 <h3>完整工作流演示</h3>
 <p>整理 <code>deer.psd</code>，图层面板命名如下：</p>
