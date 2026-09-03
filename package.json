@@ -1,0 +1,16 @@
+{
+  "name": "ps-spine-automation",
+  "version": "1.0.0",
+  "description": "Photoshop MCP Server for Spine workflow automation",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": ["photoshop", "mcp", "spine", "automation"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4"
+  }
+}

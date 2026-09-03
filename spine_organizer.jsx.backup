@@ -1,0 +1,397 @@
+// Spine PSD Layer Organizer
+// 目标结构（3 层嵌套）：
+//   [slot]slot-xxx                       插槽组
+//     [skin]category/skin-base-{style}    皮肤组
+//       attachment-{style}                实际图层（附件）
+//
+// 用法：把每个原始图层命名为下表的“基础名”（不带风格后缀），
+//       风格名 {style} 会自动取自 PSD 文件名，然后点“开始整理”。
+
+#target photoshop
+
+// ============ 部位映射表 ============
+// key  = 图层基础名（不含风格后缀，全小写）
+// slot = 插槽名（不含 [slot] 前缀）
+// skin = 皮肤名 category/base（不含 [skin] 前缀和风格后缀）
+var PART_MAP = {
+  // ===== 脚部：鞋 + 袜（左右各自独立插槽，共用 foot 皮肤）=====
+  "shoes-l":        { slot: "slot-shoes-l",           skin: "foot/foot" },
+  "shoes-r":        { slot: "slot-shoes-r",           skin: "foot/foot" },
+  "socks-l-mini":   { slot: "slot-socks-l",           skin: "foot/foot" },
+  "socks-r-mini":   { slot: "slot-socks-r",           skin: "foot/foot" },
+
+  // ===== 头发 =====
+  "hair-front":     { slot: "slot-hair-front",        skin: "hair/hair" },
+  "hair-back":      { slot: "slot-hair-back",         skin: "hair/hair" },
+
+  // ===== 上衣 / 袖子 =====
+  // 简版（只有上臂，deer 款）
+  "sleeve-l":       { slot: "slot-top-l-upper",       skin: "tops/top-sleeve" },
+  "sleeve-r":       { slot: "slot-top-r-upper",       skin: "tops/top-sleeve" },
+  "sleeve-body":    { slot: "slot-top-body",          skin: "tops/top-sleeve" },
+  // 完整版（上臂 + 下臂，pinkboy 款）
+  "sleeve-l-upper": { slot: "slot-top-l-upper",       skin: "tops/top-sleeve" },
+  "sleeve-l-lower": { slot: "slot-top-l-lower",       skin: "tops/top-sleeve" },
+  "sleeve-r-upper": { slot: "slot-top-r-upper",       skin: "tops/top-sleeve" },
+  "sleeve-r-lower": { slot: "slot-top-r-lower",       skin: "tops/top-sleeve" },
+
+  // ===== 下装（区分长短）=====
+  "skirt-mini":     { slot: "slot-skirt",             skin: "bottom/bottom-skirt-min" },
+  "skirt-long":     { slot: "slot-skirt",             skin: "bottom/bottom-skirt-long" },
+  "pant-mini-l":    { slot: "slot-pant-l",            skin: "bottom/bottom-pant-mini" },
+  "pant-mini-r":    { slot: "slot-pant-r",            skin: "bottom/bottom-pant-mini" },
+  "pant-long-l":    { slot: "slot-pant-l",            skin: "bottom/bottom-pant-long" },
+  "pant-long-r":    { slot: "slot-pant-r",            skin: "bottom/bottom-pant-long" },
+
+  // ===== 配饰 =====
+  // 身体后配饰（每种配饰独立皮肤）
+  "tail-back":      { slot: "slot-acc-back-bodywear", skin: "acc/tail-back" },
+  "wings-back":     { slot: "slot-acc-back-bodywear", skin: "acc/wings-back" },
+
+  // 头部配饰（每种配饰独立皮肤）
+  "headband-front": { slot: "slot-acc-headwear",      skin: "acc/headband-front" },
+  "hairpin-front":  { slot: "slot-acc-headwear",      skin: "acc/hairpin-front" },
+  "beaniel-front":  { slot: "slot-acc-headwear",      skin: "acc/beaniel-front" },
+  "glasses-front":  { slot: "slot-acc-headwear",      skin: "acc/glasses-front" },
+
+  // 身体前配饰（每种配饰独立皮肤���
+  "belt-front":     { slot: "slot-acc-front-bodywear",skin: "acc/belt-front" },
+  "bag-front":      { slot: "slot-acc-front-bodywear",skin: "acc/bag-front" },
+
+  // ===== 五官（facial 皮肤）=====
+  "mouth":          { slot: "slot-mouth",             skin: "facial/facial" },
+  "eyebrow-l":      { slot: "slot-eyebrow-l",         skin: "facial/facial" },
+  "eyebrow-r":      { slot: "slot-eyebrow-r",         skin: "facial/facial" },
+
+  // ===== 眼睛（eye 皮肤）=====
+  "eye-white-l":    { slot: "slot-eye-white-l",       skin: "eye/eye" },
+  "eye-white-r":    { slot: "slot-eye-white-r",       skin: "eye/eye" },
+  "irides-l":       { slot: "slot-irides-l",          skin: "eye/eye" },
+  "irides-r":       { slot: "slot-irides-r",          skin: "eye/eye" },
+  "eyelash-l":      { slot: "slot-eyelash-l",         skin: "eye/eye" },
+  "eyelash-r":      { slot: "slot-eyelash-r",         skin: "eye/eye" }
+};
+
+// 中文/别名 → 规范 key（可选，方便用中文命名图层）
+// 注意：用”包含匹配”，所以别名要够独特，避免相互冲突
+var SYNONYMS = {
+  // 鞋袜
+  “鞋袜-左”: “shoes-l”, “鞋袜-右”: “shoes-r”,
+  “左鞋”: “shoes-l”, “右鞋”: “shoes-r”,
+  “左袜”: “socks-l-mini”, “右袜”: “socks-r-mini”,
+
+  // 头发
+  “头发-前袋”: “hair-front”, “头发-后袋”: “hair-back”,
+  “刘海”: “hair-front”, “前发”: “hair-front”, “后发”: “hair-back”,
+
+  // 上装-袖子
+  “上装-左下袖子”: “sleeve-l-lower”, “上装-右下袖子”: “sleeve-r-lower”,
+  “上装-左上袖子”: “sleeve-l-upper”, “上装-右上袖子”: “sleeve-r-upper”,
+  “上装-身体”: “sleeve-body”,
+  “左���袖”: “sleeve-l-lower”, “右下袖”: “sleeve-r-lower”,
+  “左上袖”: “sleeve-l-upper”, “右上袖”: “sleeve-r-upper”,
+  “身体”: “sleeve-body”, “上衣”: “sleeve-body”,
+
+  // 下装-裤子（长短）
+  “下装-左长裤”: “pant-long-l”, “下装-右长裤”: “pant-long-r”,
+  “下装-左短裤”: “pant-mini-l”, “下装-右短裤”: “pant-mini-r”,
+  “左长裤”: “pant-long-l”, “右长裤”: “pant-long-r”,
+  “左短裤”: “pant-mini-l”, “右短裤”: “pant-mini-r”,
+  “左裤”: “pant-mini-l”, “右裤”: “pant-mini-r”,
+
+  // 下装-裙子
+  “裙子”: “skirt-mini”, “短裙”: “skirt-mini”, “长裙”: “skirt-long”,
+
+  // 配饰
+  “尾巴”: “tail-back”,
+  “翅膀”: “wings-back”,
+  “鹿角”: “headband-front”,
+  “发带”: “headband-front”,
+  “发夹”: “hairpin-front”,
+  “帽子”: “beaniel-front”,
+  “贝雷帽”: “beaniel-front”,
+  “眼镜”: “glasses-front”,
+  “腰带”: “belt-front”,
+  “包包”: “bag-front”,
+
+  // 五官-眉毛嘴巴
+  “头发-左眉毛”: “eyebrow-l”, “头发-右眉毛”: “eyebrow-r”,
+  “左眉”: “eyebrow-l”, “右眉”: “eyebrow-r”,
+  “嘴”: “mouth”,
+
+  // 眼睛
+  “眼睛-左眼白”: “eye-white-l”, “眼睛-右眼白”: “eye-white-r”,
+  “眼睛-左眼珠”: “irides-l”, “眼睛-右眼珠”: “irides-r”,
+  “眼睛-左睫毛”: “eyelash-l”, “眼睛-右睫毛”: “eyelash-r”,
+  “左眼白”: “eye-white-l”, “右眼白”: “eye-white-r”,
+  “左瞳”: “irides-l”, “右瞳”: “irides-r”,
+  “左眼珠”: “irides-l”, “右眼珠”: “irides-r”,
+  “左睫”: “eyelash-l”, “右睫”: “eyelash-r”,
+  “左睫毛”: “eyelash-l”, “右睫毛”: “eyelash-r”
+};
+
+// ============ 工具函数 ============
+
+function sTID(s) { return app.stringIDToTypeID(s); }
+function cTID(s) { return app.charIDToTypeID(s); }
+
+// 去首尾空格（ExtendScript 无 String.trim）
+function trim(s) { return s.replace(/^\s+|\s+$/g, ""); }
+
+// 全部转小写并去空格
+function norm(s) { return trim(String(s)).toLowerCase(); }
+
+// 从文件名提取风格名（去扩展名）
+function getStyleName() {
+  var n = app.activeDocument.name;
+  return norm(n.replace(/\.(psd|psb|tif|tiff|png|jpg|jpeg)$/i, ""));
+}
+
+// 把图层名解析成规范 key：
+// 1) 去掉可能已有的风格后缀  2) 查别名表  3) 直接匹配 PART_MAP
+function resolveKey(layerName, style) {
+  var name = norm(layerName);
+
+  // 去掉结尾的 "-style"
+  if (style && name.length > style.length) {
+    var suffix = "-" + style;
+    if (name.substring(name.length - suffix.length) === suffix) {
+      name = name.substring(0, name.length - suffix.length);
+    }
+  }
+
+  // 别名（中文）匹配：只要包含即可
+  for (var cn in SYNONYMS) {
+    if (layerName.indexOf(cn) !== -1) return SYNONYMS[cn];
+  }
+
+  // 直接命中
+  if (PART_MAP[name]) return name;
+
+  return null; // 未识别
+}
+
+// ---- 图层预处理：栅格化 + 裁剪透明区域 ----
+
+// 栅格化图层（如果是智能对象或文字图层）
+function rasterizeLayer(layer) {
+  if (layer.kind === LayerKind.TEXT || layer.kind === LayerKind.SMARTOBJECT) {
+    try {
+      layer.rasterize(RasterizeType.ENTIRELAYER);
+    } catch (e) {
+      // 有些图层可能无法栅格化，跳过
+    }
+  }
+}
+
+// 裁剪图层的透明像素（去除空白边缘，但保持位置不变）
+function trimLayer(layer) {
+  var doc = app.activeDocument;
+
+  // 选中该图层
+  doc.activeLayer = layer;
+
+  try {
+    // 执行 Trim（基于透明像素）
+    var desc = new ActionDescriptor();
+    desc.putEnumerated(sTID("trimBasedOn"), sTID("trimBasedOn"), sTID("transparency"));
+    desc.putBoolean(sTID("top"), true);
+    desc.putBoolean(sTID("bottom"), true);
+    desc.putBoolean(sTID("left"), true);
+    desc.putBoolean(sTID("right"), true);
+    app.executeAction(sTID("trim"), desc, DialogModes.NO);
+  } catch (e) {
+    // Trim 可能失败（比如整个图层都是透明的），跳过
+  }
+}
+
+// ---- 最兼容的分组方式：先建空组，再用"合并到下方"把图层收进去 ----
+
+function sTID(s) { return app.stringIDToTypeID(s); }
+function cTID(s) { return app.charIDToTypeID(s); }
+
+// 在文档根部找或创建组
+function findOrCreateRootGroup(doc, groupName) {
+  for (var i = 0; i < doc.layerSets.length; i++) {
+    if (doc.layerSets[i].name === groupName) return doc.layerSets[i];
+  }
+  var g = doc.layerSets.add();
+  g.name = groupName;
+  return g;
+}
+
+// 在父组内找或创建子组
+function findOrCreateChildGroup(parent, groupName) {
+  for (var i = 0; i < parent.layerSets.length; i++) {
+    if (parent.layerSets[i].name === groupName) return parent.layerSets[i];
+  }
+  var g = parent.layerSets.add();
+  g.name = groupName;
+  return g;
+}
+
+// 把图层"合并到"目标组（通过把图层放到组上方，然后让组"吸收"它）
+function putLayerIntoGroup(layer, targetGroup) {
+  var doc = app.activeDocument;
+
+  // 先把图层移到组的上方（用 DOM 的 move，这次是平级移动，不会报错）
+  layer.move(targetGroup, ElementPlacement.PLACEBEFORE);
+
+  // 选中图层，然后执行"与下一个图层合并"操作，让它进入组
+  doc.activeLayer = layer;
+
+  var desc = new ActionDescriptor();
+  var ref = new ActionReference();
+  ref.putEnumerated(cTID("Lyr "), cTID("Ordn"), cTID("Trgt"));
+  desc.putReference(cTID("null"), ref);
+
+  try {
+    app.executeAction(cTID("Mrg2"), desc, DialogModes.NO);
+  } catch (e) {
+    // 合并失败，尝试另一种方式：直接选中图层+组，然后group
+    throw new Error("Merge into group failed: " + e.message);
+  }
+}
+
+// 递归收集所有普通图层（含已经在组里的）
+function collectArtLayers(container, out) {
+  for (var i = 0; i < container.artLayers.length; i++) {
+    out.push(container.artLayers[i]);
+  }
+  for (var j = 0; j < container.layerSets.length; j++) {
+    collectArtLayers(container.layerSets[j], out);
+  }
+  return out;
+}
+
+// ============ 预览 / 整理 ============
+
+function buildPlan(style) {
+  var doc = app.activeDocument;
+  var all = collectArtLayers(doc, []);
+  var plan = [];      // 可整理的
+  var unknown = [];   // 未识别的
+
+  for (var i = 0; i < all.length; i++) {
+    var layer = all[i];
+    var key = resolveKey(layer.name, style);
+    if (key && PART_MAP[key]) {
+      var m = PART_MAP[key];
+      plan.push({
+        layer: layer,
+        original: layer.name,
+        slotGroup: "[slot]" + m.slot,
+        skinGroup: "[skin]" + m.skin + "-" + style,
+        attachment: key + "-" + style
+      });
+    } else {
+      unknown.push(layer.name);
+    }
+  }
+  return { plan: plan, unknown: unknown };
+}
+
+function previewPlan(style) {
+  var r = buildPlan(style);
+  var msg = "风格名：" + style + "\n\n";
+  msg += "将整理 " + r.plan.length + " 个图层：\n\n";
+  for (var i = 0; i < r.plan.length; i++) {
+    var p = r.plan[i];
+    msg += p.original + "\n";
+    msg += "  " + p.slotGroup + " / " + p.skinGroup + " / " + p.attachment + "\n";
+  }
+  if (r.unknown.length > 0) {
+    msg += "\n未识别（不会处理）：\n";
+    for (var j = 0; j < r.unknown.length; j++) msg += "  " + r.unknown[j] + "\n";
+  }
+  alert(msg);
+}
+
+function organize(style) {
+  var doc = app.activeDocument;
+  var r = buildPlan(style);
+
+  if (r.plan.length === 0) {
+    alert("没有可识别的图层。\n请确认图层名符合基础名（如 shoes-r、sleeve-body）。");
+    return;
+  }
+
+  var done = 0, errors = "";
+  for (var i = 0; i < r.plan.length; i++) {
+    var p = r.plan[i];
+    try {
+      // 0) 预处理：栅格化 + 裁剪透明区域
+      rasterizeLayer(p.layer);
+      trimLayer(p.layer);
+
+      // 1) 重命名附件图层
+      p.layer.name = p.attachment;
+
+      // 2) 找或创建 slot 组（文档根部）
+      var slotG = findOrCreateRootGroup(doc, p.slotGroup);
+
+      // 3) 在 slot 组内找或创建 skin 组
+      var skinG = findOrCreateChildGroup(slotG, p.skinGroup);
+
+      // 4) 把图层放进 skin 组（移到组上方，然后合并进去）
+      putLayerIntoGroup(p.layer, skinG);
+
+      done++;
+    } catch (e) {
+      errors += "  " + p.original + ": " + e.message + "\n";
+    }
+  }
+
+  var msg = "整理完成！成功 " + done + " / " + r.plan.length + "\n";
+  if (r.unknown.length > 0) {
+    msg += "\n未识别（已跳过）：\n";
+    for (var k = 0; k < r.unknown.length; k++) msg += "  " + r.unknown[k] + "\n";
+  }
+  if (errors.length > 0) msg += "\n错误：\n" + errors;
+  alert(msg);
+}
+
+// ============ 界面 ============
+
+function showDialog() {
+  if (!app.documents.length) { alert("请先打开一个 PSD 文档"); return; }
+
+  var style = getStyleName();
+
+  var dlg = new Window("dialog", "Spine 图层整理工具");
+  dlg.orientation = "column";
+  dlg.alignChildren = ["fill", "top"];
+  dlg.spacing = 10;
+  dlg.margins = 16;
+
+  dlg.add("statictext", undefined, "按 [slot]/[skin]/附件 三层结构自动整理");
+
+  var sg = dlg.add("group");
+  sg.add("statictext", undefined, "风格名：");
+  var styleInput = sg.add("edittext", undefined, style);
+  styleInput.characters = 20;
+
+  var bg = dlg.add("group");
+  bg.alignment = ["center", "top"];
+  var previewBtn = bg.add("button", undefined, "预览");
+  var runBtn = bg.add("button", undefined, "开始整理");
+  var cancelBtn = bg.add("button", undefined, "取消", { name: "cancel" });
+
+  previewBtn.onClick = function() {
+    var s = trim(styleInput.text);
+    if (!s) { alert("请输入风格名"); return; }
+    previewPlan(norm(s));
+  };
+
+  runBtn.onClick = function() {
+    var s = trim(styleInput.text);
+    if (!s) { alert("请输入风格名"); return; }
+    organize(norm(s));
+    dlg.close();
+  };
+
+  dlg.show();
+}
+
+showDialog();
+

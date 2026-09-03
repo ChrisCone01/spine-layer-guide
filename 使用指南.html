@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Spine 图层整理工具 · 使用指南</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font:15px/1.75 -apple-system,"Segoe UI","Microsoft YaHei",sans-serif;color:#24292f;background:#f6f8fa}
+.wrap{max-width:980px;margin:0 auto;padding:0 24px 80px;background:#fff;box-shadow:0 0 24px rgba(0,0,0,.06)}
+header{background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;margin:0 -24px 32px;padding:40px 40px 32px}
+header h1{margin:0 0 8px;font-size:30px;font-weight:600}
+header p{margin:0;opacity:.9}
+h2{margin:48px 0 16px;padding-bottom:8px;border-bottom:2px solid #e5e7eb;font-size:22px}
+h3{margin:32px 0 12px;font-size:18px;color:#4f46e5}
+h4{margin:24px 0 8px;font-size:15px;color:#374151}
+table{width:100%;border-collapse:collapse;margin:12px 0 20px;font-size:14px}
+th,td{border:1px solid #e5e7eb;padding:8px 12px;text-align:left}
+th{background:#f3f4f6;font-weight:600}
+tr:nth-child(even) td{background:#fafbfc}
+code{background:#f3f4f6;padding:2px 6px;border-radius:4px;font:13px/1.5 Consolas,monospace;color:#c7254e}
+pre{background:#1f2937;color:#e5e7eb;padding:16px 20px;border-radius:8px;overflow-x:auto;font:13px/1.7 Consolas,monospace}
+pre code{background:none;color:inherit;padding:0}
+.toc{background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:20px 24px;margin:24px 0}
+.toc h3{margin:0 0 12px;color:#374151}
+.toc ol{margin:0;padding-left:22px;columns:2;column-gap:32px}
+.toc a{color:#4f46e5;text-decoration:none}
+.toc a:hover{text-decoration:underline}
+.note{border-left:4px solid #3b82f6;background:#eff6ff;padding:12px 16px;margin:16px 0;border-radius:0 6px 6px 0}
+.warn{border-left:4px solid #f59e0b;background:#fffbeb;padding:12px 16px;margin:16px 0;border-radius:0 6px 6px 0}
+.step{display:flex;gap:16px;margin:20px 0}
+.num{flex:0 0 32px;height:32px;border-radius:50%;background:#4f46e5;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600}
+.step-body{flex:1}
+.step-body h4{margin:4px 0 8px}
+ul.check{list-style:none;padding-left:0}
+ul.check li{padding:4px 0 4px 26px;position:relative}
+ul.check li:before{content:"\2610";position:absolute;left:0;color:#4f46e5;font-size:16px}
+.ok li:before{content:"\2713";color:#16a34a}
+.arrow{color:#7c3aed;font-weight:600}
+footer{margin:64px -24px -80px;padding:24px 40px;background:#f3f4f6;color:#6b7280;font-size:13px}
+@media print{body{background:#fff}.wrap{box-shadow:none}header{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>Spine 图层整理工具 · 使用指南</h1>
+  <p>用中文命名 PS 图层，一键生成 Spine 标准三层结构</p>
+</header>
+
+<div class="toc">
+  <h3>目录</h3>
+  <ol>
+    <li><a href="#intro">工具简介</a></li>
+    <li><a href="#steps">使用步骤</a></li>
+    <li><a href="#base">基础部位命名</a></li>
+    <li><a href="#acc">配饰部位命名</a></li>
+    <li><a href="#auto">自动智能功能</a></li>
+    <li><a href="#example">生成结构示例</a></li>
+    <li><a href="#notice">注意事项</a></li>
+    <li><a href="#extend">添加新配饰</a></li>
+    <li><a href="#faq">常见问题</a></li>
+    <li><a href="#checklist">命名检查清单</a></li>
+  </ol>
+</div>
+
+<h2 id="intro">一、工具简介</h2>
+<p>这个工具自动把 Photoshop 图层整理成 Spine 需要的三层嵌套结构。只要按规范用中文命名图层，点一下按钮就能生成规范结构，并自动做命名校验。</p>
+<pre><code>[slot]slot-xxx                    ← 插槽组
+  [skin]category/skin-{风格}       ← 皮肤组
+    attachment-{风格}              ← 实际图层（附件）</code></pre>
+
+<h2 id="steps">二、使用步骤</h2>
+
+<div class="step"><div class="num">1</div><div class="step-body">
+<h4>准备 PSD 文件</h4>
+<p><strong>PSD 文件名就是风格名</strong>，会自动提取并加到所有图层末尾。</p>
+<table>
+<tr><th>文件名</th><th>提取出的风格名</th></tr>
+<tr><td><code>school-blazer.psd</code></td><td><code>school-blazer</code></td></tr>
+<tr><td><code>deer.psd</code></td><td><code>deer</code></td></tr>
+<tr><td><code>deer-onesie.psd</code></td><td><code>deer-onesie</code>（识别为连体衣）</td></tr>
+</table>
+<div class="warn"><strong>建议用英文小写 + 连字符</strong>命名文件，不要用中文文件名。</div>
+</div></div>
+
+<div class="step"><div class="num">2</div><div class="step-body">
+<h4>按规范命名图层</h4>
+<p>参照下方<a href="#base">基础部位</a>和<a href="#acc">配饰部位</a>命名表，用中文给每个图层命名。</p>
+<div class="note">只需要命名<strong>可见图层</strong>。隐藏的参考图、草稿层会被自动跳过。</div>
+</div></div>
+
+<div class="step"><div class="num">3</div><div class="step-body">
+<h4>运行脚本</h4>
+<p>在 Photoshop 菜单中选择：<strong>文件 → 脚本 → 浏览</strong>，找到并选择 <code>spine_organizer.jsx</code>。</p>
+<p>弹出对话框后，风格名已自动填好。先点 <strong>「预览」</strong> 确认映射关系，再点 <strong>「开始整理」</strong> 执行。</p>
+</div></div>
+
+<div class="step"><div class="num">4</div><div class="step-body">
+<h4>查看结果</h4>
+<p>脚本会自动完成：</p>
+<ul class="check ok">
+<li>栅格化智能对象和文字图层</li>
+<li>按 slot → skin → attachment 三层重组</li>
+<li>重命名所有图层为规范格式</li>
+<li>验证命名正确性并弹出报告</li>
+</ul>
+</div></div>
+
+<h2 id="base">三、基础部位命名</h2>
+<p>基础部位<strong>必须完全按下表命名</strong>，同一行的多个写法任选其一即可。</p>
+
+<h3>1. 头发</h3>
+<table>
+<tr><th style="width:38%">中文命名（可选写法）</th><th style="width:32%">生成结果</th><th>说明</th></tr>
+<tr><td><code>头发-前发</code> / <code>前发</code> / <code>刘海</code></td><td><code>hair-front-{风格}</code></td><td>前面的头发</td></tr>
+<tr><td><code>头发-后发</code> / <code>后发</code></td><td><code>hair-back-{风格}</code></td><td>后面的头发</td></tr>
+</table>
+
+<h3>2. 鞋袜</h3>
+<table>
+<tr><th style="width:38%">中文命名（可选写法）</th><th style="width:32%">生成结果</th><th>说明</th></tr>
+<tr><td><code>鞋袜-左</code> / <code>左鞋</code></td><td><code>shoes-l-{风格}</code></td><td>左脚鞋</td></tr>
+<tr><td><code>鞋袜-右</code> / <code>右鞋</code></td><td><code>shoes-r-{风格}</code></td><td>右脚鞋</td></tr>
+<tr><td><code>左袜</code></td><td><code>socks-l-mini-{风格}</code></td><td>左脚短袜</td></tr>
+<tr><td><code>右袜</code></td><td><code>socks-r-mini-{风格}</code></td><td>右脚短袜</td></tr>
+<tr><td><code>鞋袜-左鞋角度1</code> / <code>左鞋角度2</code></td><td><code>shoes-l-new-angle-{风格}</code></td><td>左鞋角度变体（多角度版本）</td></tr>
+<tr><td><code>鞋袜-右鞋角度1</code> / <code>右鞋角度2</code></td><td><code>shoes-r-new-angle-{风格}</code></td><td>右鞋角度变体（多角度版本）</td></tr>
+</table>
+<div class="note"><strong>角度变体：</strong>当图层名包含「角度」关键字时，自动识别为多角度版本。左鞋角度使用 <code>slot-shoes-l</code> 结构，右鞋角度使用 <code>slot-shoes-r</code> 结构。每个角度图层创建独立的同名 slot 组，方便管理同一鞋子的不同角度。</div>
+
+<h3>3. 上装（袖子 + 身体）</h3>
+<h4>情况 A：袖子分上下臂</h4>
+<table>
+<tr><th style="width:38%">中文命名（可选写法）</th><th style="width:32%">生成结果</th><th>说明</th></tr>
+<tr><td><code>上装-左上袖子</code> / <code>左上袖</code></td><td><code>sleeve-l-upper-{风格}</code></td><td>左上臂</td></tr>
+<tr><td><code>上装-右上袖子</code> / <code>右上袖</code></td><td><code>sleeve-r-upper-{风格}</code></td><td>右上臂</td></tr>
+<tr><td><code>上装-左下袖子</code> / <code>左下袖</code></td><td><code>sleeve-l-lower-{风格}</code></td><td>左下臂</td></tr>
+<tr><td><code>上装-右下袖子</code> / <code>右下袖</code></td><td><code>sleeve-r-lower-{风格}</code></td><td>右下臂</td></tr>
+<tr><td><code>上装-身体</code> / <code>身体</code> / <code>上衣</code></td><td><code>sleeve-body-{风格}</code></td><td>上衣主体</td></tr>
+</table>
+
+<h4>情况 B：袖子一体（无上下之分）</h4>
+<table>
+<tr><th style="width:38%">中文命名（可选写法）</th><th style="width:32%">生成结果</th><th>说明</th></tr>
+<tr><td><code>上装-左袖子</code> / <code>左袖</code></td><td><code>sleeve-l-{风格}</code></td><td>左袖</td></tr>
+<tr><td><code>上装-右袖子</code> / <code>右袖</code></td><td><code>sleeve-r-{风格}</code></td><td>右袖</td></tr>
+<tr><td><code>上装-身体</code> / <code>身体</code> / <code>上衣</code></td><td><code>sleeve-body-{风格}</code></td><td>上衣主体</td></tr>
+</table>
+<div class="note"><strong>智能检测：</strong>脚本会先扫一遍所有图层。如果没有「下袖子」，会自动把 <code>sleeve-l-upper</code> 简化成 <code>sleeve-l</code>，不需要你手动改。</div>
+
+<h3>4. 下装（裤子 + 裙子）</h3>
+<table>
+<tr><th style="width:38%">中文命名（可选写法）</th><th style="width:32%">生成结果</th><th>说明</th></tr>
+<tr><td><code>下装-左长裤</code> / <code>左长裤</code></td><td><code>pant-long-l-{风格}</code></td><td>左腿长裤</td></tr>
+<tr><td><code>下装-右长裤</code> / <code>右长裤</code></td><td><code>pant-long-r-{风格}</code></td><td>右腿长裤</td></tr>
+<tr><td><code>下装-左短裤</code> / <code>左短裤</code> / <code>左裤</code></td><td><code>pant-mini-l-{风格}</code></td><td>左腿短裤</td></tr>
+<tr><td><code>下装-右短裤</code> / <code>右短裤</code> / <code>右裤</code></td><td><code>pant-mini-r-{风格}</code></td><td>右腿短裤</td></tr>
+<tr><td><code>裙子</code> / <code>短裙</code></td><td><code>skirt-mini-{风格}</code></td><td>短裙</td></tr>
+<tr><td><code>长裙</code></td><td><code>skirt-long-{风格}</code></td><td>长裙</td></tr>
+</table>
+
+<h3>5. 五官（眉毛 + 嘴）</h3>
+<table>
+<tr><th style="width:38%">中文命名（可选写法）</th><th style="width:32%">生成结果</th><th>说明</th></tr>
+<tr><td><code>左眉毛</code> / <code>左眉</code></td><td><code>eyebrow-l-{风格}</code></td><td>左眉</td></tr>
+<tr><td><code>右眉毛</code> / <code>右眉</code></td><td><code>eyebrow-r-{风格}</code></td><td>右眉</td></tr>
+<tr><td><code>嘴巴</code> / <code>嘴</code></td><td><code>mouth-{风格}</code></td><td>嘴巴</td></tr>
+</table>
+
+<h3>6. 眼睛</h3>
+<table>
+<tr><th style="width:38%">中文命名（可选写法）</th><th style="width:32%">生成结果</th><th>说明</th></tr>
+<tr><td><code>眼睛-左眼白</code> / <code>左眼白</code></td><td><code>eye-white-l-{风格}</code></td><td>左眼白</td></tr>
+<tr><td><code>眼睛-右眼白</code> / <code>右眼白</code></td><td><code>eye-white-r-{风格}</code></td><td>右眼白</td></tr>
+<tr><td><code>眼睛-左眼珠</code> / <code>左瞳</code> / <code>左眼球</code></td><td><code>irides-l-{风格}</code></td><td>左瞳孔</td></tr>
+<tr><td><code>眼睛-右眼珠</code> / <code>右瞳</code> / <code>右眼球</code></td><td><code>irides-r-{风格}</code></td><td>右瞳孔</td></tr>
+<tr><td><code>眼睛-左睫毛</code> / <code>左睫</code></td><td><code>eyelash-l-{风格}</code></td><td>左睫毛</td></tr>
+<tr><td><code>眼睛-右睫毛</code> / <code>右睫</code></td><td><code>eyelash-r-{风格}</code></td><td>右睫毛</td></tr>
+</table>
+
+<h2 id="acc">四、配饰部位命名</h2>
+<p>配饰的<strong>前缀格式固定</strong>，物品名会被自动识别并转成英文。格式：<code>配饰-{位置}{物品}</code></p>
+<div class="warn"><strong>必须写明具体物品</strong>，不能只写 <code>配饰-头部</code>，否则脚本无法识别。</div>
+
+<h3>1. 手持物品</h3>
+<p>命名格式：<code>配饰-左手拿{物品}</code> / <code>配饰-右手拿{物品}</code><br>
+生成格式：<code>hold-{l/r}-{物品英文}-{风格}</code></p>
+<table>
+<tr><th style="width:30%">中文物品名</th><th style="width:22%">英文代码</th><th>命名示例</th></tr>
+<tr><td>平底锅</td><td><code>pan</code></td><td><code>配饰-左手拿平底锅</code></td></tr>
+<tr><td>荧光棒</td><td><code>lightstick</code></td><td><code>配饰-右手拿荧光棒</code></td></tr>
+<tr><td>法杖</td><td><code>wand</code></td><td><code>配饰-左手拿法杖</code></td></tr>
+<tr><td>包</td><td><code>bag</code></td><td><code>配饰-右手拿包</code></td></tr>
+<tr><td>伞</td><td><code>umbrella</code></td><td><code>配饰-左手拿伞</code></td></tr>
+<tr><td>剑</td><td><code>sword</code></td><td><code>配饰-右手拿剑</code></td></tr>
+<tr><td>书</td><td><code>book</code></td><td><code>配饰-左手拿书</code></td></tr>
+<tr><td>花</td><td><code>flower</code></td><td><code>配饰-右手拿花</code></td></tr>
+<tr><td>灯笼</td><td><code>lantern</code></td><td><code>配饰-左手拿灯笼</code></td></tr>
+<tr><td>手机</td><td><code>phone</code></td><td><code>配饰-右手拿手机</code></td></tr>
+<tr><td>相机</td><td><code>camera</code></td><td><code>配饰-左手拿相机</code></td></tr>
+<tr><td>杯子</td><td><code>cup</code></td><td><code>配饰-右手拿杯子</code></td></tr>
+<tr><td>球</td><td><code>ball</code></td><td><code>配饰-左手拿球</code></td></tr>
+<tr><td>旗</td><td><code>flag</code></td><td><code>配饰-右手拿旗</code></td></tr>
+<tr><td>扇子</td><td><code>fan</code></td><td><code>配饰-左手拿扇子</code></td></tr>
+<tr><td>喇叭</td><td><code>trumpet</code></td><td><code>配饰-右手拿喇叭</code></td></tr>
+<tr><td>话筒 / 麦克风</td><td><code>microphone</code></td><td><code>配饰-左手拿话筒</code></td></tr>
+</table>
+<p><span class="arrow">示例：</span><code>配饰-左手拿法杖</code> → <code>hold-l-wand-deer</code></p>
+
+<h3>2. 身体前配饰</h3>
+<p>命名格式：<code>配饰-身体前{物品}</code> → 生成 <code>{物品英文}-front-{风格}</code></p>
+<table>
+<tr><th style="width:30%">中文物品名</th><th style="width:22%">英文代码</th><th>命名示例</th></tr>
+<tr><td>项链</td><td><code>necklace</code></td><td><code>配饰-身体前项链</code></td></tr>
+<tr><td>项圈 / 颈圈 / 脖圈</td><td><code>choker</code></td><td><code>配饰-身体前项圈</code></td></tr>
+<tr><td>腰带</td><td><code>belt</code></td><td><code>配饰-身体前腰带</code></td></tr>
+<tr><td>衬衫</td><td><code>shirt</code></td><td><code>配饰-身体前衬衫</code></td></tr>
+<tr><td>领带</td><td><code>tie</code></td><td><code>配饰-身体前领带</code></td></tr>
+<tr><td>领结</td><td><code>bowtie</code></td><td><code>配饰-身体前领结</code></td></tr>
+<tr><td>围巾</td><td><code>scarf</code></td><td><code>配饰-身体前围巾</code></td></tr>
+<tr><td>胸针</td><td><code>brooch</code></td><td><code>配饰-身体前胸针</code></td></tr>
+<tr><td>徽章</td><td><code>badge</code></td><td><code>配饰-身体前徽章</code></td></tr>
+<tr><td>花朵 / 花</td><td><code>flower</code></td><td><code>配饰-身体前花朵</code></td></tr>
+</table>
+<p><span class="arrow">示例：</span><code>配饰-身体前项链</code> → <code>necklace-front-deer</code></p>
+
+<h3>3. 身���后配饰</h3>
+<p>命名格式：<code>配饰-身体后{物品}</code> → 生成 <code>{物品英文}-back-{风格}</code></p>
+<table>
+<tr><th style="width:30%">中文物品名</th><th style="width:22%">英文代码</th><th>命名示例</th></tr>
+<tr><td>背包</td><td><code>backpack</code></td><td><code>配饰-身体后背包</code></td></tr>
+<tr><td>尾巴</td><td><code>tail</code></td><td><code>配饰-身体后尾巴</code></td></tr>
+<tr><td>翅膀 / 翼</td><td><code>wings</code></td><td><code>配饰-身体后翅膀</code></td></tr>
+<tr><td>披风</td><td><code>cape</code></td><td><code>配饰-身体后披风</code></td></tr>
+<tr><td>斗篷</td><td><code>cloak</code></td><td><code>配饰-身体后斗篷</code></td></tr>
+</table>
+<p><span class="arrow">示例：</span><code>配饰-身体后翅膀</code> → <code>wings-back-deer</code></p>
+
+<h3>4. 头部配饰</h3>
+<p>命名格式：<code>配饰-头部{物品}</code> → 生成 <code>{物品英文}-front-{风格}</code></p>
+<table>
+<tr><th style="width:30%">中文物品名</th><th style="width:22%">英文代码</th><th>命名示例</th></tr>
+<tr><td>皇冠</td><td><code>crown</code></td><td><code>配饰-头部皇冠</code></td></tr>
+<tr><td>发箍 / 发带 / 大眼发箍</td><td><code>headband</code></td><td><code>配饰-头部发箍</code></td></tr>
+<tr><td>鹿角</td><td><code>antler</code></td><td><code>配饰-头部鹿角</code></td></tr>
+<tr><td>发夹</td><td><code>hairpin</code></td><td><code>配饰-头部发夹</code></td></tr>
+<tr><td>帽子 / 贝雷帽</td><td><code>beaniel</code></td><td><code>配饰-头部帽子</code></td></tr>
+<tr><td>眼镜</td><td><code>glasses</code></td><td><code>配饰-头部眼镜</code></td></tr>
+<tr><td>耳环 / 耳钉</td><td><code>earring</code></td><td><code>配饰-头部耳环</code></td></tr>
+<tr><td>耳机</td><td><code>headphone</code></td><td><code>配饰-头部耳机</code></td></tr>
+<tr><td>兔耳</td><td><code>bunnyear</code></td><td><code>配饰-头部兔耳</code></td></tr>
+<tr><td>猫耳</td><td><code>catear</code></td><td><code>配饰-头部猫耳</code></td></tr>
+<tr><td>光环 / 天使圈</td><td><code>halo</code></td><td><code>配饰-头部光环</code></td></tr>
+</table>
+<p><span class="arrow">示例：</span><code>配饰-头部皇冠</code> → <code>crown-front-princess</code></p>
+
+<h2 id="auto">五、自动智能功能</h2>
+<table>
+<tr><th style="width:26%">功能</th><th>说明</th></tr>
+<tr><td>跳过隐藏图层</td><td>只处理可见图层。参考图、草稿层隐藏即可，不会被整理。</td></tr>
+<tr><td>智能袖子检测</td><td>有上下袖 → 保留 <code>-upper</code>/<code>-lower</code>；只有上袖 → 自动简化为 <code>sleeve-l</code>。</td></tr>
+<tr><td>连体衣检测</td><td>文件名含 <code>onesie</code> 时，上装和下装自动合并为同一个 skin：<code>onesie/onesie-{类型}</code>。有裙子则类型为 <code>skirt</code>，否则为 <code>sleeve</code>。</td></tr>
+<tr><td>镜像件处理</td><td>图层名带 <code>镜像</code> 或 <code>mirror</code> → skin 名和图层名在风格名后加 <code>-mirror</code>，slot 名不变。用于同一部位的换肤变体（常见于上装、裤子的不同花色）。</td></tr>
+<tr><td>角度变体处理</td><td>图层名带 <code>角度</code> 关键字（如 <code>鞋袜-左鞋角度1</code>）→ 自动识别为鞋子的多角度版本。左鞋角度使用 <code>slot-shoes-l</code> 结构，右鞋角度使用 <code>slot-shoes-r</code> 结构，图层名为 <code>shoes-{l/r}-new-angle-{风格}</code>。每个角度图层创建独立的 slot 组（同名但独立），方便在 Spine 中管理多个角度版本。</td></tr>
+<tr><td>自动栅格化</td><td>智能对象、文字图层自动转为普通图层，视觉效果不变。</td></tr>
+<tr><td>保持位置</td><td>不改画布尺寸，不改图层位置，只重组分组结构和命名。</td></tr>
+<tr><td>命名验证</td><td>整理后自动检查同类部位是否共享 skin、风格后缀是否完整、命名格式是否正确、是否有空组。</td></tr>
+</table>
+
+<h2 id="example">六、生成结构示例</h2>
+
+<h3>示例 1：头发（前后共享同一个 skin）</h3>
+<p>文件 <code>school-blazer.psd</code>，图层命名 <code>头发-前发</code> / <code>头发-后发</code>：</p>
+<pre><code>[slot]slot-hair-front
+  [skin]hair/hair-school-blazer
+    hair-front-school-blazer
+
+[slot]slot-hair-back
+  [skin]hair/hair-school-blazer
+    hair-back-school-blazer</code></pre>
+
+<h3>示例 2：手持物品（左右独立插槽）</h3>
+<p>文件 <code>deer.psd</code>，图层命名 <code>配饰-左手拿法杖</code> / <code>配饰-右手拿包</code>：</p>
+<pre><code>[slot]slot-acc-l-handheld
+  [skin]acc/hold-l-wand-deer
+    hold-l-wand-deer
+
+[slot]slot-acc-r-handheld
+  [skin]acc/hold-r-bag-deer
+    hold-r-bag-deer</code></pre>
+
+<h3>示例 3：头部配饰</h3>
+<p>文件 <code>princess.psd</code>，图层命名 <code>配饰-头部皇冠</code>：</p>
+<pre><code>[slot]slot-acc-headwear
+  [skin]acc/crown-front-princess
+    crown-front-princess</code></pre>
+
+<h3>示例 4：完整眼睛（6 个图层共享一个 skin）</h3>
+<p>文件 <code>deer.psd</code>，眼睛全套图层：</p>
+<pre><code>[slot]slot-eye-white-l
+  [skin]eye/eye-deer
+    eye-white-l-deer
+
+[slot]slot-eye-white-r
+  [skin]eye/eye-deer
+    eye-white-r-deer
+
+[slot]slot-irides-l
+  [skin]eye/eye-deer
+    irides-l-deer
+
+[slot]slot-irides-r
+  [skin]eye/eye-deer
+    irides-r-deer
+
+[slot]slot-eyelash-l
+  [skin]eye/eye-deer
+    eyelash-l-deer
+
+[slot]slot-eyelash-r
+  [skin]eye/eye-deer
+    eyelash-r-deer</code></pre>
+<div class="note">眼睛的 6 个部件都共享 <code>eye/eye-deer</code> 这一个 skin，这样在 Spine 里换肤时���整套一起切换。</div>
+
+
+<h3>示例 5：镜像件（同 slot 名，独立分组）</h3>
+<p>文件 <code>demo.psd</code>，图层命名 <code>上装-身体</code> / <code>上装-身体镜像</code>：</p>
+<pre><code>[slot]slot-top-body
+  [skin]tops/top-sleeve-demo
+    sleeve-body-demo
+
+[slot]slot-top-body
+  [skin]tops/top-sleeve-demo-mirror
+    sleeve-body-demo-mirror</code></pre>
+<div class="note">镜像件生成<strong>两个独立的同名 slot 组</strong>（风格名后加 <code>-mirror</code>）。在 PSD 里是分开的文件夹，导出到 Spine 后会合并成一个 slot，切换 skin 就能换花色，绑定和动画不需要重做。</div>
+
+<h3>示例 6：角度变体（同 slot 名，独立分组）</h3>
+<p>文件 <code>demo.psd</code>，图层命名 <code>鞋袜-左鞋角度1</code> / <code>鞋袜-左鞋角度2</code> / <code>鞋袜-右鞋角度1</code>：</p>
+<pre><code>[slot]slot-shoes-l
+  [skin]foot/foot-demo
+    shoes-l-new-angle-demo
+
+[slot]slot-shoes-l
+  [skin]foot/foot-demo
+    shoes-l-new-angle-demo
+
+[slot]slot-shoes-r
+  [skin]foot/foot-demo
+    shoes-r-new-angle-demo</code></pre>
+<div class="note">角度变体自动识别左右，生成<strong>独立的同名 slot 组</strong>。左鞋角度使用 <code>slot-shoes-l</code> 结构，右鞋角度使用 <code>slot-shoes-r</code> 结构。每个角度图层都是独立的组，图层名带 <code>-new-angle</code> 标识。导出到 Spine 后，同名 slot 会自动合并，方便管理同一个鞋子的多个角度版本。</div>
+
+<h3>完整工作流演示</h3>
+<p>整理 <code>deer.psd</code>，图层面板命名如下：</p>
+<pre><code>头发-前发
+头发-后发
+左鞋
+右鞋
+上装-左袖
+上装-右袖
+上装-身体
+裙子
+配饰-头部鹿角
+配饰-左手拿法杖
+眼睛-左眼白
+眼睛-右眼白
+眼睛-左眼珠
+眼睛-右眼珠
+嘴</code></pre>
+<p>运行脚本后弹出：</p>
+<pre><code>整理完成！成功 15 / 15
+
+========== 验证命名正确性 ==========
+✅ 所有检查通过！命名结构正确。</code></pre>
+
+<h2 id="notice">七、注意事项</h2>
+<table>
+<tr><th style="width:22%">项目</th><th>要点</th></tr>
+<tr><td>文件命名</td><td>PSD 文件名即风格名，用英文小写 + 连字符。不要用中文文件名。</td></tr>
+<tr><td>图层命名</td><td>必须严格按规范表命名，可用简写。不能自创命名，脚本识别不了。</td></tr>
+<tr><td>配饰命名</td><td>必须写明具体物品，例如 <code>配饰-头部皇冠</code>，不能只写 <code>配饰-头部</code>。</td></tr>
+<tr><td>图层可见性</td><td>只处理可见图层。不想整理的图层，隐藏它就行。</td></tr>
+<tr><td>画布位置</td><td>脚本不改画布尺寸，也不移动图层位置。</td></tr>
+<tr><td>未识别图层</td><td>命名不符规范的图层会在结果对话框里列出，保持原样不动。</td></tr>
+<tr><td>备份</td><td>脚本会直接修改当前 PSD。<strong>运行前建议先另存一份备份。</strong></td></tr>
+</table>
+
+<h2 id="extend">八、添加新的配饰物品</h2>
+<p>遇到词典里没有的新物品，可以自己加进脚本：</p>
+<ol>
+<li>用记事本或代码编辑器打开 <code>spine_organizer.jsx</code></li>
+<li>在脚本开头找到对应词典：<code>HANDHELD_ITEMS</code>（手持）、<code>FRONT_BODYWEAR</code>（身体前）、<code>BACK_BODYWEAR</code>（身体后）、<code>HEADWEAR</code>（头部）</li>
+<li>按格式添加一行，保存后重新运行脚本</li>
+</ol>
+<pre><code>// 例：给手持物品词典加「魔杖」
+var HANDHELD_ITEMS = {
+  "魔杖": "magicwand",   // 英文代码只能是一个单词，不要带空格或连字符
+  "平底锅": "pan",
+  "荧光棒": "lightstick",
+  // ... 其余保持不变
+};</code></pre>
+<div class="warn">英文代码<strong>必须是单个单词</strong>，且中文名要足够独特——脚本用「包含匹配」，名字太短可能和别的条目撞车。</div>
+
+<h2 id="faq">九、常见问题</h2>
+
+<h4>Q1：脚本提示「未识别图层」怎么办？</h4>
+<p>说明图层命名不符合规范。对照本文的命名表检查，或者先点「预览」，对话框会列出所有识别不了的图层名。</p>
+
+<h4>Q2：自动填的风格名不对怎么办？</h4>
+<p>在弹出的对话框里手动改风格名输入框，再点「开始整理」。</p>
+
+<h4>Q3：整理完能再改吗？</h4>
+<p>能，但不建议手动动生成的结构。要调整就先 <code>Ctrl+Z</code> 撤销，改好原始图层名再重跑脚本。</p>
+
+<h4>Q4：只想整理一部分图层怎么办？</h4>
+<p>把不需要整理的图层隐藏起来，脚本只处理可见图层。</p>
+
+<h4>Q5：脚本会改坏原始 PSD 吗？</h4>
+<p>会直接修改当前打开的文档。运行前先另存一份备份，或者做好用 <code>Ctrl+Z</code> 撤销的准备。</p>
+
+<h4>Q6：验证报告里的「错误」和「警告」有什么区别？</h4>
+<p><strong>错误</strong>（❌）必须修，比如同类部位 skin 名不一致、缺风格后缀——这些会导致 Spine 换肤出问题。<strong>警告</strong>（⚠️）可以忽略，比如只有左边没右边，不对称设计是正常的。</p>
+
+<h2 id="checklist">十、命名检查清单</h2>
+<p>运行脚本前，照这个清单过一遍：</p>
+
+<h4>基础部位</h4>
+<ul class="check">
+<li>头发：<code>头发-前发</code>、<code>头发-后发</code></li>
+<li>鞋袜：<code>左鞋</code>、<code>右鞋</code>、<code>左袜</code>、<code>右袜</code></li>
+<li>上装：<code>左袖</code>、<code>右袖</code>、<code>身体</code>（或分上下臂的版本）</li>
+<li>下装：<code>裙子</code> 或 <code>左裤</code>、<code>右裤</code></li>
+<li>五官：<code>左眉毛</code>、<code>右眉毛</code>、<code>嘴巴</code></li>
+<li>眼睛：<code>左眼白</code>、<code>右眼白</code>、<code>左眼珠</code>、<code>右眼珠</code>、<code>左睫毛</code>、<code>右睫毛</code></li>
+</ul>
+
+<h4>配饰部位</h4>
+<ul class="check">
+<li>手持：<code>配饰-左手拿{物品}</code>、<code>配饰-右手拿{物品}</code></li>
+<li>身体前：<code>配饰-身体前{物品}</code></li>
+<li>身体后：<code>配饰-身体后{物品}</code></li>
+<li>头部：<code>配饰-头部{物品}</code></li>
+</ul>
+
+<h4>文件检查</h4>
+<ul class="check">
+<li>PSD 文件名是英文（作为风格名）</li>
+<li>所有要处理的图层都是可见状态</li>
+<li>参考图、草稿层已隐藏</li>
+<li>已另存一份备份</li>
+</ul>
+
+<footer>
+Spine 图层整理工具 · 使用指南　|　配套脚本：<code>spine_organizer.jsx</code><br>
+浏览器里按 <code>Ctrl+P</code> 可打印或导出为 PDF
+</footer>
+</div>
+</body>
+</html>
