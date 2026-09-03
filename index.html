@@ -157,8 +157,8 @@ footer{margin:64px -24px -80px;padding:24px 40px;background:#f3f4f6;color:#6b728
 <tr><td><code>鞋袜-右</code> / <code>右鞋</code></td><td><code>shoes-r-{风格}</code></td><td>右脚鞋</td></tr>
 <tr><td><code>左袜</code></td><td><code>socks-l-mini-{风格}</code></td><td>左脚短袜</td></tr>
 <tr><td><code>右袜</code></td><td><code>socks-r-mini-{风格}</code></td><td>右脚短袜</td></tr>
-<tr><td><code>鞋袜-左鞋角度1</code> / <code>左鞋角度2</code></td><td><code>shoes-l-new-angle-{风格}</code></td><td>左鞋角度变体（多角度版本）</td></tr>
-<tr><td><code>鞋袜-右鞋角度1</code> / <code>右鞋角度2</code></td><td><code>shoes-r-new-angle-{风格}</code></td><td>右鞋角度变体（多角度版本）</td></tr>
+<tr><td><code>鞋袜-左鞋角度1</code></td><td><code>shoes-l-new-angle-{风格}</code></td><td>左鞋角度变体（多角度版本）</td></tr>
+<tr><td><code>鞋袜-右鞋角度1</code></td><td><code>shoes-r-new-angle-{风格}</code></td><td>右鞋角度变体（多角度版本）</td></tr>
 </table>
 <div class="note"><strong>角度变体：</strong>当图层名包含「角度」关键字时，自动识别为多角度版本。左鞋角度使用 <code>slot-shoes-l</code> 结构，右鞋角度使用 <code>slot-shoes-r</code> 结构。每个角度图层创建独立的同名 slot 组，方便管理同一鞋子的不同角度。</div>
 
@@ -368,12 +368,8 @@ footer{margin:64px -24px -80px;padding:24px 40px;background:#f3f4f6;color:#6b728
 <div class="note">镜像件生成<strong>两个独立的同名 slot 组</strong>（风格名后加 <code>-mirror</code>）。在 PSD 里是分开的文件夹，导出到 Spine 后会合并成一个 slot，切换 skin 就能换花色，绑定和动画不需要重做。</div>
 
 <h3>示例 6：角度变体（同 slot 名，独立分组）</h3>
-<p>文件 <code>demo.psd</code>，图层命名 <code>鞋袜-左鞋角度1</code> / <code>鞋袜-左鞋角度2</code> / <code>鞋袜-右鞋角度1</code>：</p>
+<p>文件 <code>demo.psd</code>，图层命名 <code>鞋袜-左鞋角度1</code> / <code>鞋袜-右鞋角度1</code>：</p>
 <pre><code>[slot]slot-shoes-l
-  [skin]foot/foot-demo
-    shoes-l-new-angle-demo
-
-[slot]slot-shoes-l
   [skin]foot/foot-demo
     shoes-l-new-angle-demo
 
